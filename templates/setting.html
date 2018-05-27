@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <script src="{{url_for('static', filename='js/jquery.min.js')}}"></script>
+    <script src="{{url_for('static', filename='js/bootstrap.min.js')}}"></script>
+    <script src="{{url_for('static', filename='js/ie-emulation-modes-warning.js')}}"></script>
+    <script src="{{url_for('static', filename='js/echarts.min.js')}}"></script>
+    <title>Bet Analycis System</title>
+
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="{{url_for('static', filename='css/bootstrap.min.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/ie10-viewport-bug-workaround.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/dashboard.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/ie10-viewport-bug-workaround.css')}}">
+    <link rel="icon" href="{{url_for('static', filename='assets/favicon.ico')}}">
+  </head>
+
+  <body>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">听说要赚大钱</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="{{url_for('get_setting')}}">设置</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-sm-3 col-md-2 sidebar">
+          <ul class="nav nav-sidebar">
+            <li><a href="{{url_for('get_tendency_by_date')}}">单日盈利分析</span></a></li>
+            <li><a href="{{url_for('get_tendency_by_volume')}}">指定期数盈利分析</a></li>
+            <li><a href="{{url_for('get_tendency_by_peroid')}}">指定时间段盈利分析</a></li>
+            <li><a href="{{url_for('get_prize_result')}}">查询开奖号码</a></li>
+          </ul>
+        </div>
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+          <div class="row placeholders">
+            <h1 class="page-header"> </h1>
+          </div>
+          <h4>规则一最大投注追加次数为：{{max_bet}}</h2>
+          <form class="form-inline" action="{{url_for('update_max_bet')}}">
+            <div class="form-group mx-sm-3 mb-2">
+              <label for="max_bet">请输入最大追加次数：</label>
+              <input type="text" class="form-control" id="max_bet" name="max_bet" placeholder="请输入"/>
+            </div>
+            <button type="submit" class="btn btn-primary">设置</button>
+          </form>
+        </div>
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+          <div class="row placeholders">
+            <h1 class="page-header"> </h1>
+          </div>
+          <h4>规则二投注金额序列：{{rule_two}}</h2>
+          <form class="form-inline" action="{{url_for('update_ruletwo')}}">
+            <div class="form-group mx-sm-3 mb-2">
+              <label for="max_bet">请输入投注序列：</label>
+              <input type="text" class="form-control" id="rule_two" name="rule_two" placeholder="用英文分号分割，例如:1,4,14" size="40"/>
+            </div>
+            <button type="submit" class="btn btn-primary">设置</button>
+          </form>
+        </div>
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+          <div class="row placeholders">
+            <h1 class="page-header"> </h1>
+          </div>
+          <form class="form-inline" action="{{url_for('update_database')}}">
+            <div class="form-group mx-sm-3 mb-2">
+              <label for="max_bet">数据库最近更新时间为：</label>
+              {{last_updated}}
+              {% if update_result is defined %}
+                {% if update_result %}
+                  <label>更新成功！</label>
+                {% else %}
+                  <label class="text-danger">更新失败，请检查网络。</label>
+                {% endif%}
+              {% endif%}
+            </div>
+            <button type="submit" class="btn btn-primary">更新</button>
+          </form>
+        </div>
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+          <div class="row placeholders">
+            <h1 class="page-header"> </h1>
+          </div>
+          <h4>当前规则为：{% if rule == 1%}规则1{% else %}规则2{% endif %}</h2>
+          <form class="form-inline" action="{{url_for('update_rule')}}">
+            <div class="form-group mx-sm-3 mb-2">
+              <input class="form-check-input" type="radio" name="rule" id="exampleRadios1" value="1" {% if rule == 1%} checked {% endif %}>
+              <label class="form-check-label" for="exampleRadios1">
+                规则1
+              </label>
+              <input class="form-check-input" type="radio" name="rule" id="exampleRadios1" value="2" {% if rule == 2%} checked {% endif %}>
+              <label class="form-check-label" for="exampleRadios1">
+                规则2
+              </label>
+            </div>
+            <button type="submit" class="btn btn-primary">设置</button>
+          </form>
+        </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <script src="{{url_for('static', filename='js/jquery.min.js')}}"></script>
+    <script src="{{url_for('static', filename='js/bootstrap.min.js')}}"></script>
+    <script src="{{url_for('static', filename='js/ie-emulation-modes-warning.js')}}"></script>
+    <script src="{{url_for('static', filename='js/echarts.min.js')}}"></script>
+    <title>Bet Analycis System</title>
+
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="{{url_for('static', filename='css/bootstrap.min.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/ie10-viewport-bug-workaround.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/dashboard.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/ie10-viewport-bug-workaround.css')}}">
+    <link rel="icon" href="{{url_for('static', filename='assets/favicon.ico')}}">
+  </head>
+
+  <body>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">听说要赚大钱</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="{{url_for('get_setting')}}">设置</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-sm-3 col-md-2 sidebar">
+          <ul class="nav nav-sidebar">
+            <li><a href="{{url_for('get_tendency_by_date')}}">单日盈利分析</a></li>
+            <li class="active"><a href="{{url_for('get_tendency_by_volume')}}">指定期数盈利分析<span class="sr-only">(current)</span></a></li>
+            <li><a href="{{url_for('get_tendency_by_peroid')}}">指定时间段盈利分析</a></li>
+            <li><a href="{{url_for('get_prize_result')}}">查询开奖号码</a></li>
+          </ul>
+        </div>
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+          <form class="form-inline" action="{{url_for('get_tendency_by_volume')}}">
+            <div class="form-group mx-sm-3 mb-2">
+              <label for="start">起始期数：</label>
+              <input type="text" class="form-control" id="start" name="start" placeholder="例如: 10001" value="{{start}}" />
+              <label for="end">结束期数：</label>
+              <input type="text" class="form-control" id="end" name="end" placeholder="例如: 10001" value="{{end}}" />
+            </div>
+            <button type="submit" class="btn btn-primary mb-2">分析</button>
+          </form>
+          <h1 class="page-header"></h1>
+          <div class="row placeholders">
+            <div id="main" style="height:400px;"></div>
+            <script type="text/javascript">
+                // 基于准备好的dom，初始化echarts实例
+                var myChart = echarts.init(document.getElementById('main'));
+                var hello = '{{other_result}}'.replace(/&#39;/g, '"')
+                var step_data = JSON.parse(hello)
+                var prize_data = JSON.parse('{{result_set}}'.replace(/&#39;/g, '"'))
+
+                var current_win = [];
+                var current_los = [];
+                var xAxis = []
+
+                for (var i = 0; i < step_data.length; i++) {
+                    current_win.push(step_data[i]['current_win'])
+                    current_los.push(step_data[i]['current_lost'])
+                    xAxis.push(prize_data[i]['abet_id'])
+                }
+
+                // 指定图表的配置项和数据
+                option = {
+                    title: {
+                        text: '盈利趋势图'
+                    },
+                    tooltip: {
+                        trigger: 'axis'
+                    },
+                    legend: {
+                        data:['当前盈利','当前亏损','总盈利', '总亏损']
+                    },
+                    grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '3%',
+                        containLabel: true
+                    },
+                    toolbox: {
+                        feature: {
+                            saveAsImage: {}
+                        }
+                    },
+                    xAxis: {
+                        type: 'category',
+                        boundaryGap: false,
+                        data: xAxis
+                    },
+                    yAxis: {
+                        type: 'value'
+                    },
+                    series: [
+                        { 
+                            name:'当前盈利',
+                            type:'line',
+                            data: current_win
+                        },
+                        {
+                            name:'当前亏损',
+                            type:'line',
+                            data: current_los
+                        },
+                        {
+                            name:'总盈利',
+                            type:'line',
+                            data: JSON.parse('{{total_win}}')
+                        },
+                        {
+                            name:'总亏损',
+                            type:'line',
+                            data: JSON.parse('{{total_los}}')
+                        }
+                    ]};
+
+                // 使用刚指定的配置项和数据显示图表。
+                myChart.setOption(option);
+    </script>
+          </div>
+
+          <h2 class="sub-header">趋势细节</h2>
+          <div class="table-responsive">
+            <table class="table table-bordered">
+              {% if total_win|length > 0 and total_los|length >0%}
+                <thead>
+                  <tr>
+                    <th>开奖号码</th>
+                    <th>投注细节</th>
+                    <th>本次亏损</th>
+                    <th>本次盈利</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for row in other_result%}
+                      <tr>
+                      {% for key, value in row.items() %}
+                        <td name="details">{{value | replace("###", "<br>") |safe}}</td>
+                      {% endfor%}
+                      </tr>
+                  {% endfor%}
+                    <tr>
+                      <td>总盈利</td>
+                      <td>{{total_win[-1]}}</td>
+                      <td>总亏损</td>
+                      <td>{{total_los[-1]}}</td>
+                    </tr>
+                    <tr>
+                      <td>合计</td>
+                      <td>{{total_win[-1] - total_los[-1]}}</td>
+                      <td></td>
+                      <td></td>
+                    </tr>
+              </tbody>
+              {% else %}
+                  <h2>暂时没有发现数据...</h2>
+              {% endif %}
+            </table>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
